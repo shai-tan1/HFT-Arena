@@ -1,0 +1,31 @@
+# Render blueprint — deploys the HFT Arena backend from this repo.
+#
+# One web service, built from backend/Dockerfile with the repo root as context
+# (the shared/ wire contract is compiled into the bundle, so the context must
+# be the root, not backend/).
+#
+# IMPORTANT: keep this at a single instance. Live matches live in the process's
+# memory (see infra/docker-compose.prod.yml) — a second instance gets its own
+# empty match state and silently breaks matchmaking. Scale vertically only.
+services:
+  - type: web
+    name: hft-arena-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render generates a strong secret once and keeps it stable across
+      # deploys. The backend refuses to boot in production without it.
+      - key: JWT_SECRET
+        generateValue: true
+      # The deployed frontend origin, for CORS. Update this if the Vercel URL
+      # changes (e.g. a custom domain).
+      - key: CORS_ORIGIN
+        value: https://dist-psi-seven-83.vercel.app
+      # PORT is injected by Render automatically; the server reads process.env.PORT.
