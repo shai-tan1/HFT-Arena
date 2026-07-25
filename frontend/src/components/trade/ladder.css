@@ -1,0 +1,141 @@
+.ladder {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.ladder-head {
+  display: grid;
+  grid-template-columns: 1fr 84px 1fr;
+  padding: 7px 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  border-bottom: 1px solid var(--line-soft);
+  font-family: var(--sans);
+}
+.ladder-head span:first-child { text-align: left; }
+.ladder-head-px { text-align: center; }
+.ladder-head span:last-child { text-align: right; }
+
+.ladder-rows {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.lrow {
+  display: grid;
+  grid-template-columns: 1fr 84px 1fr;
+  height: 22px;
+  flex: 0 0 22px;
+  align-items: stretch;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.022);
+}
+
+/* The best bid/offer row is where nearly every decision is made. It gets the
+   only horizontal rule in the ladder so the eye can find it without counting. */
+.lrow-best { background: rgba(255, 255, 255, 0.028); }
+.lrow-last .lcell-px { color: var(--fg); font-weight: 700; }
+.lrow-last .lcell-px::after {
+  content: '';
+  position: absolute;
+  inset: 2px 3px;
+  border: 1px solid rgba(232, 237, 251, 0.28);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* Your average entry. A position's break-even is the single most-glanced-at
+   number on the screen and it belongs ON the price axis, not in a side panel. */
+.lrow-avg .lcell-px {
+  color: var(--gold);
+  font-weight: 800;
+}
+.lrow-avg .lcell-px::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 1px dashed rgba(252, 211, 77, 0.55);
+  pointer-events: none;
+}
+
+.lcell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 12px;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.lcell-px {
+  justify-content: center;
+  color: var(--fg-dim);
+  font-size: 12.5px;
+  background: rgba(0, 0, 0, 0.28);
+  border-left: 1px solid var(--line-soft);
+  border-right: 1px solid var(--line-soft);
+}
+
+.lcell-bid { justify-content: flex-start; color: var(--bid); }
+.lcell-ask { justify-content: flex-end; color: var(--ask); }
+
+.lcell-bid:hover, .lcell-ask:hover { background: rgba(255, 255, 255, 0.05); }
+.lcell-bid:hover::after, .lcell-ask:hover::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border: 1px solid currentColor;
+  opacity: 0.45;
+  border-radius: 3px;
+}
+
+.lbar {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 2px;
+  pointer-events: none;
+  transition: width 0.09s linear;
+}
+.lbar-bid { left: 0; background: var(--bid-deep); }
+.lbar-ask { right: 0; background: var(--ask-deep); }
+
+.lqty { position: relative; z-index: 1; }
+
+/* Your own resting size, called out inside the aggregate. */
+.lmine {
+  position: relative;
+  z-index: 2;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin: 0 6px;
+}
+.lmine-bid { background: var(--bid); color: #04140a; }
+.lmine-ask { background: var(--ask); color: #1c0308; }
+
+.has-mine { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14); }
+
+.ladder-foot {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.22);
+}
+.ladder-foot .num { text-align: right; color: var(--fg); }

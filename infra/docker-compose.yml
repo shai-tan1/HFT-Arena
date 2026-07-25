@@ -1,0 +1,49 @@
+# Local development stack.
+#
+#   docker compose -f infra/docker-compose.yml up -d
+#
+# Postgres and Redis only. The backend and frontend run on the host under
+# `npm run dev` so a save is a reload, not a rebuild — containerising them
+# during development buys isolation you do not need and costs you the fast loop
+# you do.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hfta-postgres
+    environment:
+      POSTGRES_DB: hfta
+      POSTGRES_USER: hfta
+      POSTGRES_PASSWORD: hfta_dev
+      # C collation keeps index ordering stable across host locales. A
+      # leaderboard that sorts differently on a developer's laptop than in
+      # production is a bug that takes a very long time to be believed.
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Anything in this directory runs once, in filename order, on first boot
+      # of an empty volume. Schema then seed.
+      - ../db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ../db/schema_02_gameplay.sql:/docker-entrypoint-initdb.d/02_gameplay.sql:ro
+      - ../db/seeds/001_content.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hfta -d hfta"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: hfta-redis
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  pgdata:

@@ -1,0 +1,359 @@
+/* ==========================================================================
+   HFT Arena — design tokens and base styles.
+
+   The palette is built around one idea: the CHART AND THE LADDER ARE THE
+   INTERFACE. Everything chrome-coloured recedes to near-black so that the only
+   saturated pixels on screen are price, size and P&L. A trading screen that
+   decorates its panels competes with its own data for the player's attention,
+   and the data wins arguments it should not have to have.
+
+   Bid green and ask red are fixed and never reused for anything else. If green
+   ever means "success" in this app it also means "bid", and the player's eye
+   has to disambiguate at a glance during a five-minute clock.
+   ========================================================================== */
+
+:root {
+  /* Surfaces, darkest to lightest */
+  --bg-void: #05070f;
+  --bg-deep: #080b17;
+  --bg-panel: #0c1020;
+  --bg-raised: #121729;
+  --bg-hover: #1a2138;
+
+  --line: #1e2740;
+  --line-bright: #2c3654;
+  --line-soft: #161d31;
+
+  /* Text */
+  --fg: #e8edfb;
+  --fg-dim: #8f9bbd;
+  --fg-faint: #5b678a;
+
+  /* Brand — the cyan/violet gradient from the logo */
+  --cyan: #22d3ee;
+  --cyan-dim: #0e7490;
+  --violet: #a855f7;
+  --violet-dim: #6d28d9;
+  --brand-grad: linear-gradient(96deg, var(--cyan) 0%, #6366f1 52%, var(--violet) 100%);
+
+  /* Market semantics — reserved, never decorative */
+  --bid: #22c55e;
+  --bid-deep: rgba(34, 197, 94, 0.16);
+  --bid-glow: rgba(34, 197, 94, 0.42);
+  --ask: #f43f5e;
+  --ask-deep: rgba(244, 63, 94, 0.16);
+  --ask-glow: rgba(244, 63, 94, 0.42);
+
+  /* Status */
+  --warn: #fbbf24;
+  --gold: #fcd34d;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+  --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(1200px 700px at 78% -8%, rgba(168, 85, 247, 0.11), transparent 62%),
+    radial-gradient(900px 620px at 10% 4%, rgba(34, 211, 238, 0.09), transparent 60%),
+    var(--bg-void);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numbers must not reflow as they change. Every price, size and P&L on screen
+   is tabular — a ladder whose columns twitch on each tick is unreadable. */
+.num, .mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+a { color: var(--cyan); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+button:disabled { cursor: not-allowed; opacity: 0.45; }
+
+input, select {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  background: var(--bg-void);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  padding: 8px 10px;
+  outline: none;
+  width: 100%;
+}
+input:focus, select:focus { border-color: var(--cyan-dim); }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--line-soft); }
+
+/* ---------------------------------------------------------------------------
+   Layout primitives
+   --------------------------------------------------------------------------- */
+.app { display: flex; flex-direction: column; min-height: 100%; }
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 24px;
+  height: 60px;
+  border-bottom: 1px solid var(--line-soft);
+  background: rgba(8, 11, 23, 0.82);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-size: 17px;
+}
+.brand .mark {
+  background: var(--brand-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.brand .tag {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: var(--fg-faint);
+  font-weight: 600;
+}
+
+.nav-links { display: flex; gap: 4px; margin-left: 8px; }
+.nav-link {
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  color: var(--fg-dim);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.nav-link:hover { color: var(--fg); background: var(--bg-raised); text-decoration: none; }
+.nav-link.active { color: var(--cyan); background: rgba(34, 211, 238, 0.09); }
+
+.spacer { flex: 1; }
+
+.page { padding: 32px 24px 64px; max-width: 1280px; margin: 0 auto; width: 100%; }
+.page-wide { max-width: 1720px; }
+
+.stack { display: flex; flex-direction: column; }
+.row { display: flex; align-items: center; }
+.gap-4 { gap: 4px; } .gap-8 { gap: 8px; } .gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; } .gap-24 { gap: 24px; }
+
+/* ---------------------------------------------------------------------------
+   Panels
+   --------------------------------------------------------------------------- */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 13px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent);
+  flex: 0 0 auto;
+}
+
+.panel-body { padding: 13px; }
+
+/* ---------------------------------------------------------------------------
+   Buttons
+   --------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  color: var(--fg);
+  transition: background 0.12s, border-color 0.12s, transform 0.06s;
+}
+.btn:hover:not(:disabled) { background: var(--bg-hover); border-color: var(--line); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+.btn-primary {
+  background: var(--brand-grad);
+  border: none;
+  color: #050810;
+  font-weight: 800;
+}
+.btn-primary:hover:not(:disabled) { filter: brightness(1.12); }
+
+.btn-buy {
+  background: linear-gradient(180deg, #17913f, #12742f);
+  border-color: #1c9c46;
+  color: #eafff0;
+  font-weight: 800;
+}
+.btn-buy:hover:not(:disabled) { background: linear-gradient(180deg, #1cae4b, #158638); }
+
+.btn-sell {
+  background: linear-gradient(180deg, #c02744, #9c1c35);
+  border-color: #d13351;
+  color: #ffeef1;
+  font-weight: 800;
+}
+.btn-sell:hover:not(:disabled) { background: linear-gradient(180deg, #d92f50, #b1213c); }
+
+.btn-ghost { background: transparent; }
+.btn-sm { padding: 6px 11px; font-size: 11.5px; }
+.btn-lg { padding: 14px 30px; font-size: 15px; }
+.btn-block { width: 100%; }
+
+/* ---------------------------------------------------------------------------
+   Small pieces
+   --------------------------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line-soft);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+.chip-cyan { color: var(--cyan); border-color: rgba(34, 211, 238, 0.3); background: rgba(34, 211, 238, 0.08); }
+.chip-violet { color: var(--violet); border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.08); }
+.chip-gold { color: var(--gold); border-color: rgba(252, 211, 77, 0.3); background: rgba(252, 211, 77, 0.08); }
+.chip-bid { color: var(--bid); border-color: rgba(34, 197, 94, 0.3); background: var(--bid-deep); }
+.chip-ask { color: var(--ask); border-color: rgba(244, 63, 94, 0.3); background: var(--ask-deep); }
+
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.up { color: var(--bid); }
+.down { color: var(--ask); }
+.dim { color: var(--fg-dim); }
+.faint { color: var(--fg-faint); }
+
+.divider { height: 1px; background: var(--line-soft); margin: 14px 0; }
+
+/* ---------------------------------------------------------------------------
+   Tables
+   --------------------------------------------------------------------------- */
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  border-bottom: 1px solid var(--line-soft);
+  white-space: nowrap;
+}
+table.data td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  white-space: nowrap;
+}
+table.data tbody tr:hover { background: var(--bg-raised); }
+table.data .r { text-align: right; }
+
+.scroll-x { overflow-x: auto; }
+
+/* ---------------------------------------------------------------------------
+   Toasts — order rejections and fills. Positioned away from the ladder so a
+   burst of rejects never covers the prices the player is reacting to.
+   --------------------------------------------------------------------------- */
+.toasts {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 90;
+  pointer-events: none;
+  max-width: 340px;
+}
+.toast {
+  padding: 9px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: rgba(18, 23, 41, 0.96);
+  font-size: 12.5px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+  animation: toast-in 0.16s ease-out;
+}
+.toast-err { border-color: rgba(244, 63, 94, 0.5); color: #ffc9d2; }
+.toast-buy { border-color: rgba(34, 197, 94, 0.5); }
+.toast-sell { border-color: rgba(244, 63, 94, 0.5); }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.pulsing { animation: pulse-glow 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

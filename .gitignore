@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.tsbuild/
+*.tsbuildinfo
+.env
+.env.local
+
+# C++ build output — CMake regenerates all of it
+engine/build/
+
+# Editor
+.vscode/*
+!.vscode/c_cpp_properties.json
+.idea/
+
+# OS
+.DS_Store
+
+# Deployment secrets
+infra/.env

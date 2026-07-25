@@ -1,0 +1,83 @@
+# Production stack. Build from the REPO ROOT:
+#
+#   docker compose -f infra/docker-compose.prod.yml up -d --build
+#
+# ===========================================================================
+# READ THIS BEFORE SCALING
+# ===========================================================================
+# `backend` MUST stay at exactly one replica. Live matches are objects in that
+# process's memory — MatchRoom holds the engines, Gateway holds the matchmaking
+# queue and the lobbies. A second replica gets its own empty copy of all three,
+# so two players who land on different replicas can never be paired, and a
+# reconnect that lands on the wrong one drops the player out of a live match.
+#
+# Making this scalable is not a config change. It means moving room state to
+# Redis (already in the stack, currently unused by the app) and pinning each
+# match to a worker. Until then: one replica, vertical scaling only.
+# ===========================================================================
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # Required. The app throws on boot in production without it, deliberately
+      # — a default signing key is the same as no authentication at all.
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in infra/.env}
+      # Same-origin through nginx, so CORS never fires in normal use. Kept
+      # accurate anyway for direct API calls and non-browser clients.
+      CORS_ORIGIN: ${PUBLIC_ORIGIN:?set PUBLIC_ORIGIN in infra/.env}
+      DATABASE_URL: postgres://hfta:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/hfta
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    # Not published to the host. nginx is the only thing that should reach it.
+    expose:
+      - "4000"
+
+  web:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hfta
+      POSTGRES_USER: hfta
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in infra/.env}
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Applied once, in filename order, on first boot of an empty volume.
+      - ../db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ../db/schema_02_gameplay.sql:/docker-entrypoint-initdb.d/02_gameplay.sql:ro
+      - ../db/seeds/001_content.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hfta -d hfta"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  pgdata:
